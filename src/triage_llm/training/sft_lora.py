@@ -50,15 +50,32 @@ def run_sft_lora(cfg: SFTConfig) -> None:
     fp16 = cfg.fp16 if cfg.fp16 is not None else use_cuda
     bf16 = cfg.bf16 if cfg.bf16 is not None else False
 
+    torch_dtype = None
+    if use_cuda:
+        if bf16:
+            torch_dtype = torch.bfloat16
+        elif fp16:
+            torch_dtype = torch.float16
+
     tokenizer = AutoTokenizer.from_pretrained(cfg.model_name_or_path, use_fast=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.model_max_length = cfg.max_seq_length
 
-    model = AutoModelForCausalLM.from_pretrained(
-        cfg.model_name_or_path,
-        trust_remote_code=cfg.trust_remote_code,
-    )
+    model_kwargs: dict[str, object] = {
+        "trust_remote_code": cfg.trust_remote_code,
+        "low_cpu_mem_usage": True,
+    }
+
+    if use_cuda and torch_dtype is not None:
+        # transformers v5 prefers `dtype` (torch_dtype is deprecated)
+        from_pretrained_params = inspect.signature(AutoModelForCausalLM.from_pretrained).parameters
+        if "dtype" in from_pretrained_params:
+            model_kwargs["dtype"] = torch_dtype
+        else:
+            model_kwargs["torch_dtype"] = torch_dtype
+
+    model = AutoModelForCausalLM.from_pretrained(cfg.model_name_or_path, **model_kwargs)
 
     lora_config = LoraConfig(
         r=cfg.lora_r,
