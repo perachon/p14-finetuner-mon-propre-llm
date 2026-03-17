@@ -104,6 +104,25 @@ Sorties attendues :
 
 ## Étape 2 — Entraîner (SFT LoRA puis DPO)
 
+### Auth Hugging Face (optionnel mais conseillé)
+
+Si vous téléchargez souvent depuis le Hub ou si vous publiez un dataset/modèle, configurez un token Hugging Face.
+
+Deux options :
+
+1) Login global (recommandé)
+
+```bash
+huggingface-cli login
+```
+
+2) Fichier local `.env` (pratique en projet, ignoré par git)
+
+- Copier `.env.example` → `.env`
+- Mettre `HF_TOKEN=...`
+
+Les scripts `scripts/train_sft_lora.py` et `scripts/train_dpo.py` chargent automatiquement `.env` si présent.
+
 SFT (LoRA) :
 
 ```bash

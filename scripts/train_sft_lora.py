@@ -12,6 +12,14 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+# Optional: load environment variables from a local .env (kept out of git)
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(dotenv_path=ROOT / ".env")
+except Exception:
+    pass
+
 from triage_llm.training.sft_lora import SFTConfig, run_sft_lora
 
 
