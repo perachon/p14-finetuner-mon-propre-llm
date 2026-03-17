@@ -17,6 +17,11 @@ Ce dépôt contient un **POC** d'agent IA de triage médical (CHSA) couvrant :
 - `.github/workflows/` : pipeline CI.
 - `report/` : gabarit de rapport (à exporter en PDF, ≤ 20 pages).
 
+## Docs (Étapes 0/1)
+
+- Étape 0 (théorie SFT/DPO) : `docs/00_theorie_sft_dpo.md`
+- Étape 1 (données, RGPD, pipeline) : `docs/01_etape1_donnees.md`
+
 ## Installation (dev)
 
 1) Créer un environnement Python (3.10+ recommandé)
