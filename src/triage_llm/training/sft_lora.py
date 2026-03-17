@@ -77,6 +77,17 @@ def run_sft_lora(cfg: SFTConfig) -> None:
 
     model = AutoModelForCausalLM.from_pretrained(cfg.model_name_or_path, **model_kwargs)
 
+    # Reduce memory usage during training.
+    model.config.use_cache = False
+    if use_cuda:
+        try:
+            model.gradient_checkpointing_enable()
+        except Exception:
+            pass
+        torch.cuda.empty_cache()
+        # Move model to GPU early (before Trainer init) to reduce peak allocations.
+        model = model.to("cuda")
+
     lora_config = LoraConfig(
         r=cfg.lora_r,
         lora_alpha=cfg.lora_alpha,
