@@ -43,6 +43,47 @@ pip install -r requirements-dev.txt
 python -m spacy download fr_core_news_md
 ```
 
+### Windows + GPU (CUDA) — recommandé pour l'entraînement
+
+Sur Windows, l'entraînement GPU nécessite une installation **CUDA** de PyTorch (la version PyPI standard est souvent CPU-only).
+
+Notes pratiques :
+
+- Les wheels CUDA de PyTorch sont très volumineuses (plusieurs Go) : assurez-vous d'avoir assez d'espace disque.
+- Si votre disque `C:` est presque plein, redirigez `TEMP/TMP` vers un disque avec de la place (ex: `D:`) pendant l'installation.
+
+Exemple PowerShell (Python 3.12 conseillé) :
+
+```powershell
+# (Option) installer un Python 3.12 via uv (sans admin)
+uv python install 3.12
+
+# venv dédiée
+uv venv --python 3.12 .venv312
+\.venv312\Scripts\python.exe -m ensurepip --upgrade
+
+# éviter les erreurs "No space left on device" si C: est plein
+$env:TEMP = 'D:\pip-tmp'
+$env:TMP = 'D:\pip-tmp'
+New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
+
+# PyTorch CUDA (adapter cu124 si besoin)
+\.venv312\Scripts\python.exe -m pip install -U pip setuptools wheel
+\.venv312\Scripts\python.exe -m pip install --extra-index-url https://download.pytorch.org/whl/cu124 \
+  torch==2.6.0+cu124 torchvision==0.21.0+cu124 torchaudio==2.6.0+cu124
+
+# deps projet
+\.venv312\Scripts\python.exe -m pip install -r requirements.txt -r requirements-dev.txt
+
+# check GPU
+\.venv312\Scripts\python.exe -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+```
+
+Limites Windows :
+
+- `bitsandbytes` et `vllm` sont désactivés par défaut sur Windows dans `requirements.txt`.
+- Le serving vLLM (Étape 3) est donc plutôt à faire sur un environnement Linux/Cloud, même si vous développez depuis Windows.
+
 ## Étape 1 — Construire les datasets SFT/DPO
 
 À partir de fichiers locaux (JSON/JSONL/CSV) ou de datasets Hugging Face (si disponibles), vous pouvez :
