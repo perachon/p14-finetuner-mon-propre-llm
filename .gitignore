@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Envs
+.venv/
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Data (keep small samples only)
+data/raw/
+data/interim/
+data/processed/
+data/hf_cache/
+
+# Runs / artifacts
+runs/
+checkpoints/
+mlruns/
+
+# Logs
+*.log
