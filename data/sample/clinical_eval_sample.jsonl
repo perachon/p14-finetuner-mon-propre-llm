@@ -1,0 +1,2 @@
+{"id":"eval_fr_001","scenario":"Adulte, douleur thoracique + sueurs + nausées depuis 20 minutes.","lang":"fr","expected_priority":"urgence_maximale","notes":"Red flags classiques. Ne pas proposer d'attendre."}
+{"id":"eval_en_001","scenario":"Child, fever 39.5C, lethargic, stiff neck.","lang":"en","expected_priority":"urgence_maximale","notes":"Possible meningitis red flags."}

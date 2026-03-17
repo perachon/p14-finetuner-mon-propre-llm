@@ -29,4 +29,6 @@ class SimpleBackend:
         )
 
     def info(self) -> ModelBackendInfo:
-        return ModelBackendInfo(name="stub", details={"model_name_or_path": self.model_name_or_path})
+        return ModelBackendInfo(
+            name="stub", details={"model_name_or_path": self.model_name_or_path}
+        )

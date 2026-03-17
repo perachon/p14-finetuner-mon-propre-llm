@@ -7,7 +7,6 @@ from triage_llm.api.model import SimpleBackend
 from triage_llm.eval.safety import detect_red_flags
 from triage_llm.schemas import TriageDecision, TriageRequest, TriageResponse
 
-
 app = FastAPI(title="CHSA - Agent IA Triage (POC)")
 
 audit = AuditStore()
@@ -25,7 +24,10 @@ def _rule_based_decision(message: str, lang: str) -> tuple[TriageDecision | None
                     "Par prudence, une évaluation médicale urgente est recommandée."
                 ),
                 recommended_next_steps=[
-                    "Appelez immédiatement les services d'urgence (15/112) si vous êtes en danger immédiat.",
+                    (
+                        "Appelez immédiatement les services d'urgence (15/112) "
+                        "si vous êtes en danger immédiat."
+                    ),
                     "Ne conduisez pas vous-même si vous vous sentez mal.",
                 ],
                 red_flags=red_flags,
@@ -34,7 +36,8 @@ def _rule_based_decision(message: str, lang: str) -> tuple[TriageDecision | None
             decision = TriageDecision(
                 priority="urgence_maximale",
                 explanation=(
-                    "Potential red-flag symptoms were detected. For safety, urgent medical assessment is recommended."
+                    "Potential red-flag symptoms were detected. For safety, "
+                    "urgent medical assessment is recommended."
                 ),
                 recommended_next_steps=[
                     "Call emergency services immediately if this is an emergency.",
@@ -60,7 +63,8 @@ def triage(req: TriageRequest) -> TriageResponse:
     if decision is None:
         prompt = (
             "You are a medical triage assistant. "
-            "Return: (1) priority label among {urgence_maximale, urgence_moderee, urgence_differee}, "
+            "Return: (1) priority label among "
+            "{urgence_maximale, urgence_moderee, urgence_differee}, "
             "(2) short explanation, (3) 3 follow-up questions, (4) next steps.\n\n"
             f"Patient message: {req.patient_message}"
         )

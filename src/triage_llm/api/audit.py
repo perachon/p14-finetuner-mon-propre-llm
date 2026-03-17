@@ -34,7 +34,10 @@ class AuditStore:
         created_at = datetime.now(timezone.utc).isoformat()
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                "INSERT INTO interactions (id, created_at, request_json, response_json) VALUES (?, ?, ?, ?)",
+                (
+                    "INSERT INTO interactions (id, created_at, request_json, response_json) "
+                    "VALUES (?, ?, ?, ?)"
+                ),
                 (
                     interaction_id,
                     created_at,

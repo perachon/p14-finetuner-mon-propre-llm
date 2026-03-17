@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 
-
 RED_FLAG_PATTERNS = [
     # FR
     r"\bdouleur\s+thoracique\b",
