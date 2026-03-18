@@ -1,5 +1,5 @@
 Param(
-  [string]$Host = "0.0.0.0",
+  [string]$BindHost = "0.0.0.0",
   [int]$Port = 8000,
   [ValidateSet("stub","transformers")] [string]$Backend = "stub",
   [string]$BaseModel = "Qwen/Qwen3-1.7B-Base",
@@ -8,6 +8,9 @@ Param(
 
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
+
+# Ensure UTF-8 output (avoids garbled accents in Windows terminals)
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
 # Ensure the `src/` layout is importable
 $env:PYTHONPATH = "src"
@@ -21,4 +24,4 @@ if ($Backend -eq 'transformers') {
 
 $python = '.\\.venv312\\Scripts\\python.exe'
 
-& $python -m uvicorn triage_llm.api.app:app --host $Host --port $Port --app-dir src
+& $python -m uvicorn triage_llm.api.app:app --host $BindHost --port $Port --app-dir src
