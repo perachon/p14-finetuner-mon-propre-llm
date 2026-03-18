@@ -30,3 +30,16 @@ Avant un run long/coûteux, on fait souvent un run très court (quelques minutes
 - la traçabilité (logs, checkpoints).
 
 Ce n’est généralement pas « exigé » explicitement, mais c’est **très utile** pour gagner du temps et c’est un bon point à expliquer en soutenance (méthodologie rigoureuse).
+
+## Runs “courts” vs “longs” (comparaison)
+
+Dans ce projet, on exécute en pratique deux types de runs :
+
+- **Run court** : valider que tout fonctionne (lecture dataset, loss, pas d’OOM) et obtenir un premier adapter.
+- **Run long** : même config (ou quasi), mais davantage de steps/temps pour améliorer la qualité.
+
+L’intérêt d’avoir des sorties séparées (dossiers `checkpoints/*_LONG_*`) est de pouvoir comparer :
+
+- la stabilité d’entraînement (grad_norm, NaN, erreurs),
+- les métriques d’éval (eval_loss / token accuracy),
+- le ressenti qualitatif en génération.

@@ -78,3 +78,23 @@ Sources/licences à documenter : [data/SOURCES.md](data/SOURCES.md)
 
 - Ne pas mélanger entraînement et évaluation : utiliser un dossier séparé (ex: `data/eval/`).
 - Garder une trace de chaque transformation : `audit_log.jsonl` + hashes.
+
+## Si tu n'as pas de données locales (recommandé : sources HF)
+
+Si tu n'as pas (encore) de fichiers dans `data/raw/`, le plus simple est de partir de **datasets publics** sur Hugging Face, puis de les **convertir** vers le format JSONL attendu par ce repo (SFT/DPO).
+
+Point clé : avant d'ingérer une source, vérifie **la licence** et la présence de **PII** (données personnelles). Même si ton dépôt HF est privé, les conditions de licence restent applicables.
+
+### Lister rapidement des sources candidates (licence + langues)
+
+Un helper est fourni : `scripts/hf_list_datasets.py`.
+
+Exemples :
+
+```bash
+ .\.venv312\Scripts\python.exe scripts\hf_list_datasets.py --query "french medical" --limit 50 --languages fr,en
+ .\.venv312\Scripts\python.exe scripts\hf_list_datasets.py --query "triage" --limit 50 --languages fr,en
+ .\.venv312\Scripts\python.exe scripts\hf_list_datasets.py --query "med mcqa" --limit 50 --languages fr,en --out runs/hf_sources.md
+```
+
+Ensuite, reporte dans `data/SOURCES.md` les sources retenues (ID HF, URL, licence, transformations).

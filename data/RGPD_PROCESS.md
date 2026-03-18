@@ -40,6 +40,12 @@ python -m scripts.build_datasets --input_dir data/raw --out_dir data/processed -
 - Données brutes : accès restreint, non committées dans Git.
 - Données traitées : versionnées (hashes + audit log), partageables si licence le permet.
 
+## 8) Publication (Hub)
+
+- Les **données brutes** ne sont pas publiées.
+- Les artifacts publiés côté Hub sont des **adapters LoRA** (poids dérivés) dans le dépôt modèle `perachon/p14-model`.
+- Le dépôt dataset du projet est maintenu **privé** (`perachon/p14-dataset`) pour rester aligné avec les contraintes de diffusion du POC.
+
 ## 7) Risques & limites
 
 - Anonymisation imparfaite possible : documenter les taux de détection et les contrôles.

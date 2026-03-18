@@ -141,6 +141,26 @@ python -m scripts.train_dpo \
   --output_dir checkpoints/qwen3-1.7b-dpo
 ```
 
+### Runs “long” (comparaison)
+
+Un script reproductible est fourni pour lancer **SFT long puis DPO long** avec des dossiers séparés (pratique pour comparer avec les runs courts) :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_long_experiments.ps1 -SftMaxSteps 800 -DpoMaxSteps 400 -SeqLen 128
+```
+
+Sorties (exemple) :
+
+- `checkpoints/qwen3-1.7b-sft-lora_LONG_20260318_1657/`
+- `checkpoints/qwen3-1.7b-dpo_LONG_20260318_1657/`
+
+## Artifacts Hugging Face
+
+- Modèle (adapters LoRA) : `perachon/p14-model`
+  - `adapters/sft/` et `adapters/dpo/` (runs “courts”)
+  - `adapters/sft_long_20260318_1657/` et `adapters/dpo_long_20260318_1657/` (runs “long”)
+- Dataset (privé) : `perachon/p14-dataset`
+
 ## Étape 3 — API (FastAPI + vLLM)
 
 Lancement local (CPU possible pour dev, GPU recommandé pour vLLM) :
