@@ -8,16 +8,21 @@ RED_FLAG_PATTERNS = [
     r"\boppression\s+thoracique\b",
     r"\b(essoufflement\s+au\s+repos|difficult[ée]\s+respiratoire\s+s[ée]v[èe]re)\b",
     r"\b(perte\s+de\s+connaissance|syncope)\b",
+    r"\b(envie\s+de\s+m['’]?[ée]vanouir|vais\s+m['’]?[ée]vanouir|sur\s+le\s+point\s+de\s+m['’]?[ée]vanouir)\b",
     r"\bparalysie\b",
     r"\bfaiblesse\s+d'un\s+c[ôo]t[ée]\b",
     r"\bh[ée]morragie\b",
+    r"\bsaign(ement|e)?\s+(tr[èe]s\s+)?(abondant|important|incontr[ôo]l[ée]|massif)\b",
+    r"\bsaigne?\s+(beaucoup|[ée]norm[ée]ment|abondamment)\b",
     r"\bsang\s+dans\s+les\s+vomissements\b",
     # EN
     r"\b(chest\s+pain|pressure\s+in\s+chest)\b",
     r"\b(severe\s+shortness\s+of\s+breath|can'?t\s+breathe)\b",
     r"\b(fainting|passed\s+out|loss\s+of\s+consciousness)\b",
+    r"\b(feel\s+faint|about\s+to\s+faint|going\s+to\s+faint)\b",
     r"\b(one\s+sided\s+weakness|face\s+d[ro]op|slurred\s+speech)\b",
     r"\b(uncontrolled\s+bleeding|vomiting\s+blood)\b",
+    r"\b(bleeding\s+a\s+lot|bleeding\s+heavily)\b",
 ]
 
 

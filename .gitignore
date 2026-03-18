@@ -34,3 +34,6 @@ mlruns/
 
 # Logs
 *.log
+
+# HF Spaces staging (deployment helper)
+_src_a_commit_sur_hf/

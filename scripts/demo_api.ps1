@@ -24,7 +24,10 @@ $payload = @{
 }
 
 Write-Host "POST $triageUrl"
-$resp = Invoke-RestMethod -Method POST -Uri $triageUrl -ContentType "application/json" -Body ($payload | ConvertTo-Json -Depth 10)
+$json = ($payload | ConvertTo-Json -Depth 10)
+# Windows PowerShell 5.1 may not send string bodies as UTF-8; FastAPI then fails to parse JSON.
+$body = [System.Text.Encoding]::UTF8.GetBytes($json)
+$resp = Invoke-RestMethod -Method POST -Uri $triageUrl -ContentType "application/json; charset=utf-8" -Body $body
 $resp | ConvertTo-Json -Depth 20
 
 if ($ShowAudit) {

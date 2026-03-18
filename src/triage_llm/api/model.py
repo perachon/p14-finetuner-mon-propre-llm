@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import json
+import urllib.request
+import urllib.error
 from dataclasses import dataclass
 from typing import Any
 
@@ -158,6 +161,80 @@ class TransformersPeftBackend:
         )
 
 
+class VllmOpenAIBackend:
+    """Backend that calls a vLLM OpenAI-compatible server.
+
+    Intended for cloud deployment where vLLM runs on Linux/GPU and this API
+    simply forwards generation requests.
+
+    Required env vars:
+    - VLLM_BASE_URL (default: http://127.0.0.1:8000)
+    - VLLM_MODEL (default: BASE_MODEL_NAME_OR_PATH or Qwen/Qwen3-1.7B-Base)
+    Optional:
+    - VLLM_API_KEY (default: empty)
+    """
+
+    def __init__(self, base_url: str, model: str, api_key: str | None = None) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.api_key = api_key or ""
+
+    def _system_prompt(self) -> str:
+        # Keep it bilingual because the API contract currently calls `generate()`
+        # without passing `lang`.
+        return (
+            "FR: Tu es un assistant de triage médical (POC éducatif). "
+            "Sois prudent, pose des questions, propose des étapes suivantes. "
+            "N'invente pas de diagnostic. En cas de signes graves, recommande les urgences.\n\n"
+            "EN: You are a medical triage assistant (educational POC). "
+            "Be cautious, ask questions, propose next steps. "
+            "Do not invent a diagnosis. For red flags, recommend emergency care."
+        )
+
+    def generate(self, prompt: str, max_tokens: int = 256) -> str:
+        url = f"{self.base_url}/v1/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": self._system_prompt()},
+                {"role": "user", "content": prompt},
+            ],
+            "max_tokens": max_tokens,
+            "temperature": 0.2,
+            "top_p": 0.9,
+        }
+
+        data = json.dumps(payload).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                body = resp.read().decode("utf-8", errors="replace")
+        except urllib.error.HTTPError as e:
+            err = e.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"vLLM request failed: HTTP {e.code} - {err[:300]}") from e
+        except Exception as e:
+            raise RuntimeError(f"vLLM request failed: {type(e).__name__}: {e}") from e
+
+        try:
+            obj = json.loads(body)
+            return (obj["choices"][0]["message"]["content"] or "").strip()
+        except Exception as e:
+            raise RuntimeError(f"Unexpected vLLM response: {body[:300]}") from e
+
+    def info(self) -> ModelBackendInfo:
+        return ModelBackendInfo(
+            name="vllm-openai",
+            details={
+                "base_url": self.base_url,
+                "model": self.model,
+            },
+        )
+
+
 def _default_adapter_path() -> str | None:
     # Prefer the latest known long-run adapter if present in this repo.
     candidates = [
@@ -170,7 +247,7 @@ def _default_adapter_path() -> str | None:
     return None
 
 
-def make_backend_from_env() -> SimpleBackend | TransformersPeftBackend:
+def make_backend_from_env() -> SimpleBackend | TransformersPeftBackend | VllmOpenAIBackend:
     backend = os.getenv("TRIAGE_BACKEND", "stub").strip().lower()
     if backend in {"stub", "simple", "noop"}:
         return SimpleBackend()
@@ -179,6 +256,12 @@ def make_backend_from_env() -> SimpleBackend | TransformersPeftBackend:
         base_model = os.getenv("BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base")
         adapter = os.getenv("ADAPTER_NAME_OR_PATH") or _default_adapter_path()
         return TransformersPeftBackend(base_model_name_or_path=base_model, adapter_name_or_path=adapter)
+
+    if backend in {"vllm", "vllm-openai", "openai"}:
+        base_url = os.getenv("VLLM_BASE_URL", "http://127.0.0.1:8000")
+        model = os.getenv("VLLM_MODEL") or os.getenv("BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base")
+        api_key = os.getenv("VLLM_API_KEY")
+        return VllmOpenAIBackend(base_url=base_url, model=model, api_key=api_key)
 
     # Safe fallback
     return SimpleBackend()

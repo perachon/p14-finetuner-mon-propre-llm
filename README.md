@@ -189,6 +189,25 @@ Endpoints :
 - `POST /triage` (questionnaire + triage)
 - `GET /audit/{interaction_id}`
 
+### Backend vLLM (cloud)
+
+Pour répondre au livrable "endpoint cloud optimisé grâce à vLLM", l'API supporte aussi un backend **vLLM OpenAI-compatible**.
+
+Principe :
+
+- vLLM tourne sur une machine Linux + GPU et expose `/v1/chat/completions`.
+- l'API FastAPI (ce repo) forward les générations vers vLLM via `TRIAGE_BACKEND=vllm-openai`.
+
+Variables :
+
+```powershell
+$env:TRIAGE_BACKEND='vllm-openai'
+$env:VLLM_BASE_URL='http://127.0.0.1:8000'
+$env:VLLM_MODEL='Qwen/Qwen3-1.7B-Base'
+```
+
+Guide de déploiement (HF Spaces Docker + GPU) : `cloud/hf_spaces_vllm/README.md`.
+
 ## Rapport
 
 Le gabarit est dans `report/rapport_template.md`.
