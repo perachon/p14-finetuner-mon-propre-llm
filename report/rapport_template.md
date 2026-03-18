@@ -41,6 +41,13 @@
 - Hyperparamètres, ressources, temps d'entraînement.
 - Checkpoints, seeds, reproductibilité.
 
+### 4.2bis Runs “courts” vs “longs” (méthodologie)
+
+- Run court : valider le pipeline (dataset, tokenization/troncature, loss, pas d’OOM) et obtenir un premier adapter.
+- Run long : augmenter le budget de steps (même config) pour améliorer la qualité.
+- Comparaison : conserver des dossiers de sortie distincts (ex: `*_LONG_*`) et reporter les métriques (eval_loss, stabilité, NaN).
+- Traçabilité : lister les artefacts (dossiers `checkpoints/`) et la publication éventuelle sur Hugging Face (repo modèle, adapters).
+
 ### 4.3 Alignement DPO
 
 - Construction des paires (chosen/rejected).
