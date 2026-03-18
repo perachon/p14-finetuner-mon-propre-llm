@@ -50,6 +50,15 @@ def run_sft_lora(cfg: SFTConfig) -> None:
     fp16 = cfg.fp16 if cfg.fp16 is not None else use_cuda
     bf16 = cfg.bf16 if cfg.bf16 is not None else False
 
+    if use_cuda:
+        # Prefer SDPA when available (often lower memory than eager attention).
+        try:
+            torch.backends.cuda.enable_flash_sdp(True)
+            torch.backends.cuda.enable_mem_efficient_sdp(True)
+            torch.backends.cuda.enable_math_sdp(True)
+        except Exception:
+            pass
+
     torch_dtype = None
     if use_cuda:
         if bf16:
@@ -67,6 +76,10 @@ def run_sft_lora(cfg: SFTConfig) -> None:
         "low_cpu_mem_usage": True,
     }
 
+    if use_cuda:
+        # Try to use PyTorch SDPA attention when supported by the model.
+        model_kwargs["attn_implementation"] = "sdpa"
+
     if use_cuda and torch_dtype is not None:
         # transformers v5 prefers `dtype` (torch_dtype is deprecated)
         from_pretrained_params = inspect.signature(AutoModelForCausalLM.from_pretrained).parameters
@@ -81,6 +94,11 @@ def run_sft_lora(cfg: SFTConfig) -> None:
     model.config.use_cache = False
     if use_cuda:
         try:
+            # Prefer non-reentrant checkpointing when available (less overhead).
+            model.gradient_checkpointing_enable(
+                gradient_checkpointing_kwargs={"use_reentrant": False}
+            )
+        except TypeError:
             model.gradient_checkpointing_enable()
         except Exception:
             pass
@@ -158,6 +176,42 @@ def run_sft_lora(cfg: SFTConfig) -> None:
             trainer_kwargs["processing_class"] = tokenizer
         if "formatting_func" in trainer_params:
             trainer_kwargs["formatting_func"] = _format_text
+
+    # TRL 0.29+ uses its own SFTConfig class (adds max_length, packing, etc.).
+    # If available, prefer it to ensure truncation/padding behavior is applied.
+    trl_args = None
+    try:
+        from trl.trainer.sft_config import SFTConfig as TRLSFTConfig
+
+        if "trl.trainer.sft_config.SFTConfig" in str(trainer_params.get("args")):
+            trl_args = TRLSFTConfig(
+                output_dir=cfg.output_dir,
+                per_device_train_batch_size=cfg.per_device_train_batch_size,
+                gradient_accumulation_steps=cfg.gradient_accumulation_steps,
+                learning_rate=cfg.learning_rate,
+                num_train_epochs=cfg.num_train_epochs,
+                max_steps=cfg.max_steps if cfg.max_steps is not None else -1,
+                logging_steps=cfg.logging_steps,
+                save_steps=cfg.save_steps,
+                save_total_limit=3,
+                seed=cfg.seed,
+                bf16=bf16,
+                fp16=fp16,
+                report_to="none",
+                eval_strategy="steps" if eval_ds is not None else "no",
+                eval_steps=cfg.save_steps if eval_ds is not None else None,
+                per_device_eval_batch_size=1,
+                use_cache=False,
+                gradient_checkpointing=use_cuda,
+                gradient_checkpointing_kwargs={"use_reentrant": False},
+                max_length=cfg.max_seq_length,
+                packing=False,
+            )
+    except Exception:
+        trl_args = None
+
+    if trl_args is not None:
+        trainer_kwargs["args"] = trl_args
 
     trainer = SFTTrainer(**trainer_kwargs)
 
