@@ -140,12 +140,20 @@ class TransformersPeftBackend:
         return text.strip()
 
     def info(self) -> ModelBackendInfo:
+        device = self._device
+        if device is None:
+            try:
+                import torch
+
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+            except Exception:
+                device = None
         return ModelBackendInfo(
             name="transformers-peft",
             details={
                 "base_model": self.base_model_name_or_path,
                 "adapter": self.adapter_name_or_path,
-                "device": self._device,
+                "device": device,
             },
         )
 
