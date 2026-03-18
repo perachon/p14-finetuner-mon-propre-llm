@@ -3,14 +3,14 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException
 
 from triage_llm.api.audit import AuditStore
-from triage_llm.api.model import SimpleBackend
+from triage_llm.api.model import make_backend_from_env
 from triage_llm.eval.safety import detect_red_flags
 from triage_llm.schemas import TriageDecision, TriageRequest, TriageResponse
 
 app = FastAPI(title="CHSA - Agent IA Triage (POC)")
 
 audit = AuditStore()
-backend = SimpleBackend()
+backend = make_backend_from_env()
 
 
 def _rule_based_decision(message: str, lang: str) -> tuple[TriageDecision | None, list[str]]:
@@ -61,14 +61,8 @@ def triage(req: TriageRequest) -> TriageResponse:
     follow_up_questions: list[str]
 
     if decision is None:
-        prompt = (
-            "You are a medical triage assistant. "
-            "Return: (1) priority label among "
-            "{urgence_maximale, urgence_moderee, urgence_differee}, "
-            "(2) short explanation, (3) 3 follow-up questions, (4) next steps.\n\n"
-            f"Patient message: {req.patient_message}"
-        )
-        raw = backend.generate(prompt)
+        # Keep the API contract stable: we use model text as explanation.
+        raw = backend.generate(req.patient_message)
         decision = TriageDecision(
             priority="urgence_moderee",
             explanation=raw[:400],

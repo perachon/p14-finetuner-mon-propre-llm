@@ -32,3 +32,145 @@ class SimpleBackend:
         return ModelBackendInfo(
             name="stub", details={"model_name_or_path": self.model_name_or_path}
         )
+
+
+class TransformersPeftBackend:
+    """Backend Transformers + PEFT (LoRA).
+
+    Conçu pour être activé via variable d'env, et chargé *lazy* au 1er appel
+    pour éviter de casser la CI/Docker (où torch CUDA et/ou les poids ne sont
+    pas disponibles).
+    """
+
+    def __init__(
+        self,
+        base_model_name_or_path: str,
+        adapter_name_or_path: str | None,
+    ) -> None:
+        self.base_model_name_or_path = base_model_name_or_path
+        self.adapter_name_or_path = adapter_name_or_path
+
+        self._tokenizer = None
+        self._model = None
+        self._device = None
+
+    def _lazy_init(self) -> None:
+        if self._model is not None:
+            return
+
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        dtype = torch.float16 if device == "cuda" else torch.float32
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.base_model_name_or_path,
+            trust_remote_code=True,
+            use_fast=True,
+        )
+
+        model = AutoModelForCausalLM.from_pretrained(
+            self.base_model_name_or_path,
+            trust_remote_code=True,
+            torch_dtype=dtype,
+            low_cpu_mem_usage=True,
+            device_map="auto" if device == "cuda" else None,
+        )
+
+        if self.adapter_name_or_path:
+            from peft import PeftModel
+
+            model = PeftModel.from_pretrained(model, self.adapter_name_or_path)
+
+        model.eval()
+        self._tokenizer = tokenizer
+        self._model = model
+        self._device = device
+
+    def _build_prompt(self, user_message: str, lang: str) -> str:
+        # Minimal prompt: keep behavior stable; we do not attempt strict JSON parsing here.
+        system_fr = (
+            "Tu es un assistant de triage médical (POC éducatif). "
+            "Tu dois être prudent, poser des questions, et proposer des étapes suivantes. "
+            "N'invente pas de diagnostic. En cas de signes graves, recommande les urgences."
+        )
+        system_en = (
+            "You are a medical triage assistant (educational POC). "
+            "Be cautious, ask questions, and propose next steps. "
+            "Do not invent a diagnosis. For red flags, recommend emergency care."
+        )
+        system = system_fr if lang == "fr" else system_en
+
+        tok = self._tokenizer
+        if tok is not None and hasattr(tok, "apply_chat_template"):
+            messages = [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user_message},
+            ]
+            return tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        return f"SYSTEM: {system}\nUSER: {user_message}\nASSISTANT:"
+
+    def generate(self, prompt: str, max_tokens: int = 256) -> str:
+        self._lazy_init()
+
+        import torch
+
+        assert self._model is not None
+        assert self._tokenizer is not None
+
+        device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
+        encoded = self._tokenizer(prompt, return_tensors="pt")
+        if device == "cuda":
+            encoded = {k: v.to(device) for k, v in encoded.items()}
+
+        input_len = int(encoded["input_ids"].shape[-1])
+        with torch.inference_mode():
+            out = self._model.generate(
+                **encoded,
+                max_new_tokens=max_tokens,
+                do_sample=True,
+                temperature=0.2,
+                top_p=0.9,
+            )
+
+        new_tokens = out[0][input_len:]
+        text = self._tokenizer.decode(new_tokens, skip_special_tokens=True)
+        return text.strip()
+
+    def info(self) -> ModelBackendInfo:
+        return ModelBackendInfo(
+            name="transformers-peft",
+            details={
+                "base_model": self.base_model_name_or_path,
+                "adapter": self.adapter_name_or_path,
+                "device": self._device,
+            },
+        )
+
+
+def _default_adapter_path() -> str | None:
+    # Prefer the latest known long-run adapter if present in this repo.
+    candidates = [
+        "checkpoints/qwen3-1.7b-dpo_LONG_20260318_1657",
+        "checkpoints/qwen3-1.7b-dpo_from_sft_lowvram",
+    ]
+    for cand in candidates:
+        if os.path.exists(cand):
+            return cand
+    return None
+
+
+def make_backend_from_env() -> SimpleBackend | TransformersPeftBackend:
+    backend = os.getenv("TRIAGE_BACKEND", "stub").strip().lower()
+    if backend in {"stub", "simple", "noop"}:
+        return SimpleBackend()
+
+    if backend in {"transformers", "peft", "transformers-peft"}:
+        base_model = os.getenv("BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base")
+        adapter = os.getenv("ADAPTER_NAME_OR_PATH") or _default_adapter_path()
+        return TransformersPeftBackend(base_model_name_or_path=base_model, adapter_name_or_path=adapter)
+
+    # Safe fallback
+    return SimpleBackend()
