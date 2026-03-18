@@ -44,7 +44,7 @@ Table de mesure (à remplir):
 
 | Environnement | Backend | Matériel | P50 (s) | P95 (s) | Commentaires |
 |---|---|---|---:|---:|---|
-| Local | transformers+peft | RTX 4050 6GB (Windows) | TODO | TODO | 1er call plus long (chargement) |
+| Local | transformers+peft | RTX 4050 6GB (Windows) | 13.491 | 13.693 | Mesure réelle sur 10 requêtes (warmup=1) |
 | Local | stub (FastAPI) | CPU (Windows) | 0.020 | 0.042 | Mesure réelle sur 10 requêtes; baseline API sans modèle |
 | Cloud | stub (FastAPI) | CPU (HF Spaces) | 0.227 | 0.306 | Mesure réelle sur 10 requêtes; réseau inclus |
 | Cloud | vLLM | GPU (Linux) | N/A | N/A | Non mesuré (pas de GPU gratuit). Plan de déploiement ci-dessous |
