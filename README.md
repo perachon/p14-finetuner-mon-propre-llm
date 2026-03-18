@@ -167,7 +167,7 @@ Lancement local (CPU possible pour dev, GPU recommandé pour vLLM) :
 
 ```bash
 set MODEL_NAME_OR_PATH=checkpoints/qwen3-1.7b-dpo
-uvicorn triage_llm.api.app:app --host 0.0.0.0 --port 8000
+uvicorn --app-dir src triage_llm.api.app:app --host 0.0.0.0 --port 8000
 ```
 
 ### Backend modèle (Windows-friendly)
@@ -180,7 +180,7 @@ Pour utiliser le vrai modèle (Transformers + LoRA PEFT), définis :
 $env:TRIAGE_BACKEND='transformers'
 $env:BASE_MODEL_NAME_OR_PATH='Qwen/Qwen3-1.7B-Base'
 $env:ADAPTER_NAME_OR_PATH='checkpoints\qwen3-1.7b-dpo_LONG_20260318_1657'
-uvicorn triage_llm.api.app:app --host 0.0.0.0 --port 8000
+uvicorn --app-dir src triage_llm.api.app:app --host 0.0.0.0 --port 8000
 ```
 
 Endpoints :
