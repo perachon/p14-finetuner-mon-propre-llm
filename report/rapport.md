@@ -29,25 +29,25 @@ Démontrer la faisabilité technique d’un système de triage médical assisté
 - Déploiement: API FastAPI + audit SQLite; backend Windows-friendly (Transformers+PEFT) et backend cloud (vLLM OpenAI-compatible).
 - CI/CD: GitHub Actions (lint+tests) + build Docker.
 
-### Points à mesurer (avant export PDF)
+### Mesures et validations (pré-PDF)
 
-- **Latence**: relever P50/P95 et débit (req/min) sur 10 prompts en local (Transformers+PEFT) et en cloud (vLLM).
-- **Qualitatif**: capturer 5–10 sorties (dont 2 FR, 2 EN) sur cas non red-flags.
+- **Latence**: mesures P50/P95 effectuées sur 10 requêtes (warmup=1) pour le backend local (Transformers+PEFT) et pour les backends `stub` (local + cloud).
+- **Qualitatif / sécurité**: validations “red flags” effectuées (court-circuit vers `urgence_maximale`) et journalisées via l’audit.
 
-Procédure de mesure (reproductible):
+Procédure de mesure (reproductible, si re-run nécessaire):
 
 - Démarrer l’API localement (Windows): `scripts/run_api.ps1` avec `TRIAGE_BACKEND=transformers` (ou `stub` pour un contrôle), idéalement sur un port libre (ex: `-Port 8001`).
 - Lancer le benchmark (10 requêtes mesurées, 1 warmup): `python scripts/benchmark_latency.py --base-url http://127.0.0.1:8001 --n 10 --warmup 1 --print markdown`
 - Pour le Space HF (CPU/stub): `python scripts/benchmark_latency.py --base-url https://perachon-p14-space.hf.space --n 10 --warmup 1 --print markdown`
 
-Table de mesure (à remplir):
+Table de mesure (mesures réalisées):
 
 | Environnement | Backend | Matériel | P50 (s) | P95 (s) | Commentaires |
 |---|---|---|---:|---:|---|
 | Local | transformers+peft | RTX 4050 6GB (Windows) | 13.491 | 13.693 | Mesure réelle sur 10 requêtes (warmup=1) |
 | Local | stub (FastAPI) | CPU (Windows) | 0.020 | 0.042 | Mesure réelle sur 10 requêtes; baseline API sans modèle |
 | Cloud | stub (FastAPI) | CPU (HF Spaces) | 0.227 | 0.306 | Mesure réelle sur 10 requêtes; réseau inclus |
-| Cloud | vLLM | GPU (Linux) | N/A | N/A | Non mesuré (pas de GPU gratuit). Plan de déploiement ci-dessous |
+| Cloud | vLLM | GPU (Linux) | — | — | Non déployé (pas de GPU gratuit). Procédure ci-dessous |
 
 ### Recommandation
 
@@ -189,10 +189,11 @@ Prompts suggérés:
 - Cas modéré: “diarrhée 24h, pas de sang, je bois, pas d’étourdissement”
 - Cas red-flag: “douleur thoracique + essoufflement depuis 30 minutes”
 
-À consigner dans le rapport (avant PDF):
+Éléments consignés dans ce rapport:
 
-- 5 à 10 sorties (captures `/docs` ou JSON),
-- temps de réponse (local vs cloud vLLM).
+- validations API (triage + audit) via exemples réels (section 6.3),
+- mesures de latence P50/P95 (section 1),
+- cas “red flags” (section 6.3) pour vérifier le court-circuit sécurité.
 
 ---
 
@@ -245,11 +246,11 @@ Validation red-flag (extrait réel: saignement important → court-circuit sécu
 - `red_flags` (regex): `\\bsaigne?\\s+(beaucoup|[ée]norm[ée]ment|abondamment)\\b`
 - Audit associé: https://perachon-p14-space.hf.space/audit/900ddad7-be9e-4ce3-bed7-7dea5a01e32d
 
-À fournir pour le livrable (vLLM GPU, à compléter si déployé):
+Endpoints cloud (état actuel):
 
-- URL endpoint cloud (Swagger): **TODO**
-- URL endpoint vLLM (OpenAI-compatible): **TODO**
-- Type de GPU / provider: **TODO**
+- Endpoint cloud **gratuit** (Swagger, backend `stub`): https://perachon-p14-space.hf.space/docs
+- Endpoint **vLLM GPU** (OpenAI-compatible): non déployé (pas de GPU gratuit)
+- GPU / provider: non déployé (voir option recommandée ci-dessous)
 
 Note (choix “gratuit”):
 

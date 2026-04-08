@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "fields": {
+    "id": "Identifiant unique",
+    "instruction/prompt": "Consigne ou prompt",
+    "input": "Contexte (optionnel)",
+    "output/chosen/rejected": "Réponse(s)",
+    "symptoms": "Liste de symptômes normalisés (optionnel)",
+    "history": "Antécédents (optionnel)",
+    "vitals": "Constantes (optionnel)",
+    "source": "Origine du dataset",
+    "lang": "Langue fr/en",
+    "confidence": "Niveau de confiance (optionnel)",
+    "pii_redacted": "PII supprimées (bool)"
+  }
+}

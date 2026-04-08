@@ -1,0 +1,59 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "instruction": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "input": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "output": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "lang": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "source": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "symptoms": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "history": {
+      "feature": {
+        "dtype": "null",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "vitals": {},
+    "confidence": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "pii_redacted": {
+      "dtype": "bool",
+      "_type": "Value"
+    },
+    "created_at": {
+      "dtype": "null",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}

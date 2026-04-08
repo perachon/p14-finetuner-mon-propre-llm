@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import os
 import json
-import urllib.request
+import os
 import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from typing import Any
 
@@ -255,11 +255,16 @@ def make_backend_from_env() -> SimpleBackend | TransformersPeftBackend | VllmOpe
     if backend in {"transformers", "peft", "transformers-peft"}:
         base_model = os.getenv("BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base")
         adapter = os.getenv("ADAPTER_NAME_OR_PATH") or _default_adapter_path()
-        return TransformersPeftBackend(base_model_name_or_path=base_model, adapter_name_or_path=adapter)
+        return TransformersPeftBackend(
+            base_model_name_or_path=base_model,
+            adapter_name_or_path=adapter,
+        )
 
     if backend in {"vllm", "vllm-openai", "openai"}:
         base_url = os.getenv("VLLM_BASE_URL", "http://127.0.0.1:8000")
-        model = os.getenv("VLLM_MODEL") or os.getenv("BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base")
+        model = os.getenv("VLLM_MODEL") or os.getenv(
+            "BASE_MODEL_NAME_OR_PATH", "Qwen/Qwen3-1.7B-Base"
+        )
         api_key = os.getenv("VLLM_API_KEY")
         return VllmOpenAIBackend(base_url=base_url, model=model, api_key=api_key)
 

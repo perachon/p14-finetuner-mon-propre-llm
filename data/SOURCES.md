@@ -1,4 +1,4 @@
-# Sources de données (à compléter)
+# Sources de données
 
 Documentez ici, pour chaque source utilisée :
 

@@ -108,9 +108,11 @@ def bench(
             if e.code == 404:
                 raise RuntimeError(
                     "HTTP 404 calling "
-                    f"{url}. This usually means you're pointing at the wrong base URL/port, or the API path differs. "
-                    f"Try opening {base_url}/docs (if available) and confirm the endpoint path, then rerun with "
-                    "--base-url (and optionally --triage-path)."
+                    f"{url}. "
+                    "This usually means you're pointing at the wrong base URL/port, "
+                    "or the API path differs. "
+                    f"Try opening {base_url}/docs (if available) and confirm the endpoint path, "
+                    "then rerun with --base-url (and optionally --triage-path)."
                 ) from e
             raise RuntimeError(f"HTTP {e.code} calling {url}: {err[:500]}") from e
         t1 = time.perf_counter()
@@ -204,9 +206,11 @@ def main() -> int:
     if args.print == "markdown":
         print("| base_url | n | warmup | P50 (s) | P95 (s) | mean (s) |")
         print("|---|---:|---:|---:|---:|---:|")
-        print(
-            f"| {args.base_url} | {result.n} | {result.warmup} | {result.p50:.3f} | {result.p95:.3f} | {result.mean:.3f} |"
+        row = (
+            f"| {args.base_url} | {result.n} | {result.warmup} | "
+            f"{result.p50:.3f} | {result.p95:.3f} | {result.mean:.3f} |"
         )
+        print(row)
         return 0
 
     print(f"base_url={args.base_url}")
