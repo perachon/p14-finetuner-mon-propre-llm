@@ -32,6 +32,13 @@ Minimum:
 Optionnel:
 - `VLLM_MODEL` (par défaut `Qwen/Qwen3-1.7B-Base`)
 
+Optionnel (servir un adapter LoRA via vLLM, recommandé si vous voulez la version fine-tunée):
+
+- `VLLM_ENABLE_LORA=1`
+- `VLLM_LORA_REPO=perachon/p14-model`
+- `VLLM_LORA_SUBDIR=...` (ex: `adapters/dpo_long_20260318_1657`)
+- `VLLM_LORA_NAME=triage` (nom de l’adapter côté vLLM)
+
 ### 4) Endpoints
 
 - Endpoint POC: `GET /health`, `POST /triage`, `GET /audit/{interaction_id}`
