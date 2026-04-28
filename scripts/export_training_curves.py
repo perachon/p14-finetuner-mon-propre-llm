@@ -38,7 +38,12 @@ def _write_csv(path: Path, points: list[tuple[float, float]], metric_name: str) 
         writer.writerows(points)
 
 
-def _plot_metric(path: Path, points: list[tuple[float, float]], title: str, metric_name: str) -> None:
+def _plot_metric(
+    path: Path,
+    points: list[tuple[float, float]],
+    title: str,
+    metric_name: str,
+) -> None:
     if not points:
         return
 

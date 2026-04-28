@@ -90,16 +90,32 @@ def _adaptive_follow_up_questions(
         if "fièvre" in msg:
             extras.append(("temperature", "Quelle est la température maximale mesurée ?"))
         if any(k in msg for k in ["vomis", "vomissement", "diarrh", "gastro", "naus"]) :
-            extras.append(("hydration", "Pouvez-vous boire et uriner normalement (signes de déshydratation) ?"))
+            extras.append(
+                (
+                    "hydration",
+                    "Pouvez-vous boire et uriner normalement "
+                    "(signes de déshydratation) ?",
+                )
+            )
         if "douleur" in msg:
-            extras.append(("pain_scale", "Sur une échelle de 0 à 10, quelle est l’intensité de la douleur ?"))
+            extras.append(
+                (
+                    "pain_scale",
+                    "Sur une échelle de 0 à 10, quelle est "
+                    "l’intensité de la douleur ?",
+                )
+            )
         if any(k in msg for k in ["toux", "essouff", "respir"]) :
             extras.append(("breathing", "Avez-vous une gêne respiratoire au repos ou à l’effort ?"))
 
         if is_red_flag:
             extras.extend(
                 [
-                    ("location", "Où êtes-vous actuellement (domicile, rue, seul/avec quelqu'un) ?"),
+                    (
+                        "location",
+                        "Où êtes-vous actuellement "
+                        "(domicile, rue, seul/avec quelqu'un) ?",
+                    ),
                     ("can_speak", "Pouvez-vous parler en phrases complètes ?"),
                 ]
             )
@@ -197,7 +213,8 @@ def triage(req: TriageRequest) -> TriageResponse:
             next_steps = (
                 [
                     "Surveillez l’évolution et reconsultez si aggravation.",
-                    "Si les symptômes persistent, prenez rendez-vous avec un professionnel de santé.",
+                    "Si les symptômes persistent, prenez rendez-vous avec un "
+                    "professionnel de santé.",
                 ]
                 if priority == "urgence_differee"
                 else [
