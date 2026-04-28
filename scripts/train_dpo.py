@@ -39,6 +39,12 @@ def main() -> None:
     p.add_argument("--logging_steps", type=int, default=10)
     p.add_argument("--save_steps", type=int, default=200)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--report_to",
+        default="mlflow",
+        help="Backend de tracking Transformers/TRL (ex: mlflow, none)",
+    )
+    p.add_argument("--run_name", default=None)
     args = p.parse_args()
 
     cfg = DPOConfig(
@@ -56,6 +62,8 @@ def main() -> None:
         logging_steps=args.logging_steps,
         save_steps=args.save_steps,
         seed=args.seed,
+        report_to=args.report_to,
+        run_name=args.run_name,
     )
     run_dpo(cfg)
 

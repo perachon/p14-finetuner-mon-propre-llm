@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import inspect
+import os
 from dataclasses import dataclass
 
 import torch
@@ -32,6 +33,30 @@ class SFTConfig:
     trust_remote_code: bool = True
     fp16: bool | None = None
     bf16: bool | None = None
+    report_to: str = "mlflow"
+    run_name: str | None = None
+
+
+def _normalize_report_to(value: str | None) -> str | list[str]:
+    if value is None:
+        return "none"
+    normalized = value.strip().lower()
+    if normalized in {"", "none", "null", "off", "disabled"}:
+        return "none"
+    return [normalized]
+
+
+def _configure_tracking_environment(report_to: str, output_dir: str) -> None:
+    normalized = report_to.strip().lower()
+    if normalized != "mlflow":
+        return
+
+    if not os.getenv("MLFLOW_TRACKING_URI"):
+        tracking_dir = os.path.join(os.path.dirname(output_dir), "mlruns")
+        os.environ["MLFLOW_TRACKING_URI"] = f"file:{os.path.abspath(tracking_dir)}"
+
+    if not os.getenv("MLFLOW_EXPERIMENT_NAME"):
+        os.environ["MLFLOW_EXPERIMENT_NAME"] = "p14-triage-llm"
 
 
 def _format_text(example: dict) -> str:
@@ -46,6 +71,8 @@ def _format_text(example: dict) -> str:
 
 
 def run_sft_lora(cfg: SFTConfig) -> None:
+    _configure_tracking_environment(cfg.report_to, cfg.output_dir)
+
     use_cuda = torch.cuda.is_available()
     fp16 = cfg.fp16 if cfg.fp16 is not None else use_cuda
     bf16 = cfg.bf16 if cfg.bf16 is not None else False
@@ -143,7 +170,8 @@ def run_sft_lora(cfg: SFTConfig) -> None:
         "seed": cfg.seed,
         "bf16": bf16,
         "fp16": fp16,
-        "report_to": [],
+        "report_to": _normalize_report_to(cfg.report_to),
+        "run_name": cfg.run_name or os.path.basename(cfg.output_dir),
     }
 
     # transformers v4 uses `evaluation_strategy`, v5 may use `eval_strategy`
@@ -197,7 +225,8 @@ def run_sft_lora(cfg: SFTConfig) -> None:
                 seed=cfg.seed,
                 bf16=bf16,
                 fp16=fp16,
-                report_to="none",
+                report_to=cfg.report_to,
+                run_name=cfg.run_name or os.path.basename(cfg.output_dir),
                 eval_strategy="steps" if eval_ds is not None else "no",
                 eval_steps=cfg.save_steps if eval_ds is not None else None,
                 per_device_eval_batch_size=1,

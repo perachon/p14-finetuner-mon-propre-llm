@@ -62,7 +62,10 @@ Table de mesure (mesures réalisées):
 
 - Entrée: message patient (FR/EN)
 - Sortie: priorité de triage (urgence maximale / modérée / différée), explication prudente, questions de suivi, étapes recommandées
+- Questionnaire adaptatif (POC): l’API renvoie des questions de suivi dépendantes du message et d’un champ `context` (réponses déjà connues), afin d’itérer sans reposer les mêmes questions.
 - Traçabilité: journaliser les interactions
+
+Intégration SIH (POC): l’agent est exposé via une API REST et peut être appelé par un SIH/portail patient. Le champ `context` est prévu pour recevoir des informations structurées (âge, constantes, antécédents…) provenant du SI, puis les réponses sont journalisées pour audit.
 
 ### Contraintes (sécurité / conformité)
 
@@ -161,6 +164,26 @@ Runs “long” (script `scripts/run_long_experiments.ps1`):
 - Checkpoints locaux: `checkpoints/…`
 - Adapters LoRA publiés (SFT & DPO, runs courts et longs): `perachon/p14-model`
 
+Note “poids finaux”: pour des raisons de taille et de licence, le POC distribue des adapters LoRA (SFT & DPO). Le modèle final est obtenu en combinant le modèle de base (Hub) + l’adapter.
+
+### 4.5 Suivi des expérimentations
+
+- Tracking local activable via **MLflow** dans les scripts d'entraînement SFT et DPO.
+- Backend retenu pour le POC: stockage local des runs dans `runs/experiment_tracking/mlruns/`.
+- Métriques suivies: `loss`, `eval_loss`, `grad_norm`, `learning_rate`.
+- Pour les runs historiques déjà réalisés avant l'ajout de MLflow, des courbes ont été reconstruites à partir des `trainer_state.json` présents dans les checkpoints.
+
+Artefacts disponibles:
+
+- Dashboard local MLflow: `runs/experiment_tracking/mlruns/`
+- Courbes exportées (PNG + CSV): `runs/experiment_tracking/curves/`
+
+Commande d'ouverture du dashboard local:
+
+```bash
+mlflow ui --backend-store-uri runs/experiment_tracking/mlruns
+```
+
 ---
 
 ## 5) Évaluation & sécurité
@@ -169,6 +192,7 @@ Runs “long” (script `scripts/run_long_experiments.ps1`):
 
 - Validation d’ingénierie: schémas, tests unitaires, CI.
 - Validation qualitative: batterie de prompts (FR/EN) + analyse des cas.
+- Suivi d’expérimentations: journalisation locale MLflow et export de courbes de loss/eval_loss pour les runs SFT et DPO.
 
 ### 5.2 Garde-fous: red flags
 

@@ -54,6 +54,12 @@ def main() -> None:
     p.add_argument("--bf16", action="store_true", help="Force bf16 (GPU)")
     p.add_argument("--no_bf16", action="store_true", help="Désactive bf16")
     p.add_argument(
+        "--report_to",
+        default="mlflow",
+        help="Backend de tracking Transformers/TRL (ex: mlflow, none)",
+    )
+    p.add_argument("--run_name", default=None)
+    p.add_argument(
         "--sanity_tiny",
         action="store_true",
         help="Preset: tiny model CPU-friendly pour valider la pipeline (5 steps)",
@@ -115,6 +121,8 @@ def main() -> None:
         trust_remote_code=trust_remote_code,
         fp16=fp16,
         bf16=bf16,
+        report_to=args.report_to,
+        run_name=args.run_name,
     )
     run_sft_lora(cfg)
 

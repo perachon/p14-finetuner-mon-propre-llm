@@ -1,0 +1,31 @@
+{
+  "id": "d58abc56-83ac-44bb-872b-4cdd78383623",
+  "created_at": "2026-04-28T18:21:25.223774+00:00",
+  "request": {
+    "patient_message": "J'ai de la fièvre depuis hier avec vomissements et fatigue importante, mais je respire normalement.",
+    "lang": "fr",
+    "context": {}
+  },
+  "response": {
+    "interaction_id": "",
+    "decision": {
+      "priority": "urgence_moderee",
+      "explanation": "Je suis un POC de triage. Pour mieux évaluer, je dois poser quelques questions et je ne remplace pas un avis médical.\n\nRésumé du message: J'ai de la fièvre depuis hier avec vomissements et fatigue importante, mais je respire normalement.",
+      "recommended_next_steps": [
+        "Si aggravation ou malaise important, contactez les urgences.",
+        "Sinon, consultez un professionnel de santé rapidement."
+      ],
+      "red_flags": []
+    },
+    "follow_up_questions": [
+      "Quel âge avez-vous ?",
+      "Depuis quand les symptômes ont-ils commencé ?",
+      "Quelle est la température maximale mesurée ?",
+      "Pouvez-vous boire et uriner normalement (signes de déshydratation) ?",
+      "Avez-vous une gêne respiratoire au repos ou à l’effort ?"
+    ],
+    "model_info": {
+      "model_name_or_path": ""
+    }
+  }
+}

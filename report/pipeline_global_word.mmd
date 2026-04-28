@@ -1,0 +1,25 @@
+flowchart TB
+    A[Donnees source\nHF dataset FR/EN] --> B[Preparation\nJSONL + splits + audit\nRGPD documente]
+    B --> C[SFT + LoRA\nQwen3-1.7B-Base]
+    C --> D[DPO\nalignement par preferences]
+    D --> E[Adapters LoRA\npublies sur HF]
+    E --> F[API FastAPI\ntriage + health + audit]
+
+    F --> G[Garde-fous\nred flags\nurgence maximale]
+    F --> H[Audit SQLite\ntracabilite]
+    F --> I[Inference\nstub, PEFT local, vLLM]
+    I --> J[Demo publique\nHugging Face Spaces]
+    I --> K[Voie industrielle\nvLLM Linux + GPU]
+
+    B -.-> L[MLflow local\nloss / eval_loss]
+    C -.-> L
+    D -.-> L
+    F -.-> M[CI/CD\nruff + pytest + Docker]
+
+    classDef core fill:#edf4ff,stroke:#2d5baf,stroke-width:1.4px,color:#11284d;
+    classDef ops fill:#eef8f0,stroke:#2f6b3b,stroke-width:1.2px,color:#17351d;
+    classDef risk fill:#fff4e8,stroke:#b26a00,stroke-width:1.2px,color:#5b3500;
+
+    class A,B,C,D,E,F,L,M core;
+    class H,I,J,K ops;
+    class G risk;

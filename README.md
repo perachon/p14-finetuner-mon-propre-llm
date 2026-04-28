@@ -154,6 +154,44 @@ Sorties (exemple) :
 - `checkpoints/qwen3-1.7b-sft-lora_LONG_20260318_1657/`
 - `checkpoints/qwen3-1.7b-dpo_LONG_20260318_1657/`
 
+### Suivi des expérimentations (MLflow)
+
+Les scripts d'entraînement supportent un tracking local via **MLflow**.
+
+Par défaut, `scripts/train_sft_lora.py` et `scripts/train_dpo.py` utilisent `--report_to mlflow`.
+Les runs sont stockés localement dans un dossier `mlruns/` voisin du dossier de sortie.
+
+Exemple :
+
+```bash
+python -m scripts.train_sft_lora \
+  --model_name_or_path Qwen/Qwen3-1.7B-Base \
+  --sft_jsonl data/processed/splits/sft_train.jsonl \
+  --output_dir runs/experiment_tracking/sft_run_01 \
+  --run_name sft-run-01
+```
+
+Ouvrir le dashboard local :
+
+```bash
+mlflow ui --backend-store-uri runs/experiment_tracking/mlruns
+```
+
+Pour désactiver le tracking :
+
+```bash
+python -m scripts.train_sft_lora ... --report_to none
+```
+
+Des courbes de loss peuvent aussi être exportées depuis les checkpoints existants :
+
+```bash
+python scripts/export_training_curves.py \
+  --trainer_state checkpoints/qwen3-1.7b-sft-lora_LONG_20260318_1657/checkpoint-800/trainer_state.json \
+                  checkpoints/qwen3-1.7b-dpo_LONG_20260318_1657/checkpoint-400/trainer_state.json \
+  --out_dir runs/experiment_tracking/curves
+```
+
 ## Artifacts Hugging Face
 
 - Modèle (adapters LoRA) : `perachon/p14-model`

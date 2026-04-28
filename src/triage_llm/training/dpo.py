@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -27,6 +28,30 @@ class DPOConfig:
     logging_steps: int = 10
     save_steps: int = 200
     seed: int = 42
+    report_to: str = "mlflow"
+    run_name: str | None = None
+
+
+def _normalize_report_to(value: str | None) -> str | list[str]:
+    if value is None:
+        return "none"
+    normalized = value.strip().lower()
+    if normalized in {"", "none", "null", "off", "disabled"}:
+        return "none"
+    return [normalized]
+
+
+def _configure_tracking_environment(report_to: str, output_dir: str) -> None:
+    normalized = report_to.strip().lower()
+    if normalized != "mlflow":
+        return
+
+    if not os.getenv("MLFLOW_TRACKING_URI"):
+        tracking_dir = os.path.join(os.path.dirname(output_dir), "mlruns")
+        os.environ["MLFLOW_TRACKING_URI"] = f"file:{os.path.abspath(tracking_dir)}"
+
+    if not os.getenv("MLFLOW_EXPERIMENT_NAME"):
+        os.environ["MLFLOW_EXPERIMENT_NAME"] = "p14-triage-llm"
 
 
 def _torch_dtype(use_cuda: bool) -> torch.dtype | None:
@@ -113,6 +138,8 @@ def _map_dpo(example: dict) -> dict:
 
 
 def run_dpo(cfg: DPOConfig) -> None:
+    _configure_tracking_environment(cfg.report_to, cfg.output_dir)
+
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         try:
@@ -147,7 +174,8 @@ def run_dpo(cfg: DPOConfig) -> None:
         seed=cfg.seed,
         fp16=use_cuda,
         bf16=False,
-        report_to="none",
+        report_to=_normalize_report_to(cfg.report_to),
+        run_name=cfg.run_name or os.path.basename(cfg.output_dir),
         eval_strategy="steps" if eval_ds is not None else "no",
         eval_steps=cfg.save_steps if eval_ds is not None else None,
         per_device_eval_batch_size=1,

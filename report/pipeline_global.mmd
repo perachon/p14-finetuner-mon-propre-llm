@@ -1,0 +1,33 @@
+flowchart LR
+    A[Source de donnees\nHF dataset bilingue FR/EN\nCHSA-Triage-Medic-Full-Dataset] --> B[Preparation des donnees\nconversion JSONL\nsplits train/val/test\naudit log\nRGPD documente]
+
+    B --> C[SFT + LoRA\nQwen3-1.7B-Base\nspecialisation triage]
+    C --> D[DPO\nalignement par preferences\nreponses plus prudentes]
+
+    D --> E[Artefacts modele\nadapters LoRA publies\nHugging Face Model]
+
+    E --> F[API FastAPI de triage\n/health\n/triage\n/audit par identifiant]
+    F --> G[Garde-fous securite\nred flags\npriorite forcee\nurgence_maximale]
+    F --> H[Audit SQLite\ntracabilite des interactions]
+
+    F --> I[Backends d'inference]
+    I --> I1[stub\ndemo / CI]
+    I --> I2[transformers + PEFT\nexecution locale Windows]
+    I --> I3[vllm-openai\nforward vers serveur vLLM]
+
+    I1 --> J[Endpoint cloud public\nHugging Face Spaces\ndemonstration du contrat API]
+    I3 --> K[Trajectoire industrielle\nvLLM Linux + GPU\nnon deployee publiquement]
+
+    B -.-> L[Suivi des experimentations\nMLflow local\ncourbes loss / eval_loss]
+    C -.-> L
+    D -.-> L
+
+    F -.-> M[CI/CD\nGitHub Actions\nlint + tests + build Docker]
+
+    classDef main fill:#eaf4ff,stroke:#2c5aa0,stroke-width:1.2px,color:#10233f;
+    classDef infra fill:#eef7ee,stroke:#2f6b3b,stroke-width:1.2px,color:#17351d;
+    classDef warn fill:#fff4e8,stroke:#b26a00,stroke-width:1.2px,color:#5b3500;
+
+    class A,B,C,D,E,F,L,M main;
+    class H,I,I1,I2,I3,J,K infra;
+    class G warn;

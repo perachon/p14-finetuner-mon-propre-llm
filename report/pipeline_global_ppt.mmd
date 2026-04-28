@@ -1,0 +1,27 @@
+flowchart LR
+    A[1. Donnees medicales source] --> B[2. Preparation\nJSONL\nsplits\naudit]
+    B --> C[3. SFT + LoRA\nspecialisation triage]
+    C --> D[4. DPO\nreponses plus prudentes]
+    D --> E[5. Adapters HF]
+    E --> F[6. API FastAPI\ntriage]
+
+    F --> G[7. Securite\nred flags]
+    F --> H[8. Audit\nSQLite]
+    F --> I[9. Backends\nstub, PEFT, vLLM]
+    I --> J[10. Demo cloud\nHF Spaces]
+    I --> K[11. Cible prod\nvLLM GPU]
+
+    B -.-> L[MLflow\nexperiences\ncourbes]
+    C -.-> L
+    D -.-> L
+    F -.-> M[CI/CD\nqualite + build]
+
+    classDef step fill:#0f172a,stroke:#0f172a,stroke-width:1.2px,color:#ffffff;
+    classDef support fill:#dff3e4,stroke:#2d6a4f,stroke-width:1.2px,color:#123524;
+    classDef highlight fill:#ffe8cc,stroke:#bc6c25,stroke-width:1.2px,color:#5c2f00;
+    classDef track fill:#dbeafe,stroke:#1d4ed8,stroke-width:1.2px,color:#0f2147;
+
+    class A,B,C,D,E,F step;
+    class H,I,J,K,M support;
+    class G highlight;
+    class L track;
